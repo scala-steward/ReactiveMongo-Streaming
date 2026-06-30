@@ -6,7 +6,7 @@ commands:
     parameters:
       sbt_version:
         type: string
-        default: "1.11.4"
+        default: "2.0.1"
     steps:
       - restore_cache:
           keys:
@@ -150,7 +150,7 @@ commands:
 jobs:
   scala211_akka24:
     docker:
-      - image: circleci/openjdk:8-jdk
+      - image: cimg/openjdk:26.0
 
     working_directory: ~/repo
 
@@ -171,7 +171,7 @@ jobs:
 
   scala212_akka25:
     docker:
-      - image: circleci/openjdk:8-jdk
+      - image: cimg/openjdk:26.0
 
     working_directory: ~/repo
 
@@ -191,7 +191,7 @@ jobs:
 
   scala213_akka26:
     docker:
-      - image: circleci/openjdk:8-jdk
+      - image: cimg/openjdk:26.0
 
     working_directory: ~/repo
 
@@ -218,7 +218,7 @@ jobs:
     environment:
       AKKA_VERSION: 2.6.21
       ITERATEES_VERSION: no
-      SCALA_VERSION: 3.8.3
+      SCALA_VERSION: 3.8.4
 
     steps:
       - checkout
@@ -231,7 +231,7 @@ jobs:
 
   publish_snapshots:
     docker:
-      - image: circleci/openjdk:8-jdk
+      - image: cimg/openjdk:26.0
 
     working_directory: ~/repo
     
@@ -243,7 +243,7 @@ jobs:
           keys:
           - &snapshot_cache_key scala-{{ .Environment.CIRCLE_JOB }}-{{ checksum "build.sbt" }}-{{ checksum "project/Common.scala" }}
 
-      - deploy:
+      - run:
           name: Publish artifacts to Sonatype Snapshots
           command: |
                     if [ ! "${CIRCLE_BRANCH}" = "master" ]; then
@@ -251,14 +251,11 @@ jobs:
                       exit 0
                     fi
 
-                    V=`sbt -Dsbt.log.noformat=true ';project akka-stream ;show version' | tail -n 1 | sed -e 's/^.* //g'`
+                    V=$(sbt --server 'show version' 2>&1 | sed 's/\x1b\[0[Jm]//g' | grep --color=never '[0-9]\+\.[0-9]\+' | tail -1 | sed 's/\[info\]//' | xargs | tr -cd '[:alnum:]._-')
 
-                    echo "Static version: $V"
-
-                    if [ `echo "$V" | grep -- '-SNAPSHOT' | wc -l` -eq 0 ]; then
-                      S=`echo "$V" | perl -pe 's/([0-9]+)$/${\($1 + 1)}-SNAPSHOT/'`
-                      echo "Cannot bump $V to $S"
-                      echo "version in ThisBuild := \"$S\"" > version.sbt
+                    if [[ "$V" != *SNAPSHOT* ]]; then
+                      echo "Skip non snapshot: $V"
+                      exit 0
                     fi
                     
                     export PUBLISH_REPO_NAME="Sonatype Nexus Repository Manager"

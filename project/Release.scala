@@ -95,7 +95,7 @@ object Release {
     releaseCommitMessage := {
       val ver = (ThisBuild / version).value
 
-      if (ver endsWith "-SNAPSHOT") {
+      if (ver.endsWith("-SNAPSHOT")) {
         // Prepare the release the SNAPSHOT from master, with a release branch
         s"Bump $ver"
       } else {
@@ -104,7 +104,7 @@ object Release {
       }
     },
     releaseProcess := {
-      if (version.value endsWith "-SNAPSHOT") releaseMaster.value
+      if (version.value.endsWith("-SNAPSHOT")) releaseMaster.value
       else bumpMaster.value
     }
   )
