@@ -14,6 +14,7 @@ object Compiler {
     }
 
   lazy val settings = Seq(
+    semanticdbEnabled := scalaBinaryVersion.value != "2.11",
     Compile / unmanagedSourceDirectories ++= {
       unmanaged(scalaVersion.value, (Compile / sourceDirectory).value)
     },
@@ -28,7 +29,7 @@ object Compiler {
     scalacOptions ++= {
       val sv = scalaBinaryVersion.value
 
-      if (sv startsWith "3") {
+      if (sv.startsWith("3")) {
         Seq("-Werror")
       } else if (sv != "2.11") {
         Seq("-Xfatal-warnings")
@@ -37,7 +38,7 @@ object Compiler {
       }
     },
     scalacOptions ++= {
-      if (scalaBinaryVersion.value startsWith "2.") {
+      if (scalaBinaryVersion.value.startsWith("2.")) {
         Seq(
           "-Xlint",
           "-g:vars"

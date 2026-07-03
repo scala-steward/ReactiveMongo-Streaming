@@ -30,7 +30,7 @@ EOF
 
 export JVM_OPTS
 
-TEST_ARGS=";error ;test:compile ;mimaReportBinaryIssues "
+TEST_ARGS=";error ;Test/compile ;mimaReportBinaryIssues "
 TEST_ARGS="$TEST_ARGS ;warn ;testOnly ;doc"
 
 sbt ++$SCALA_VERSION "$TEST_ARGS"
